@@ -1,7 +1,7 @@
 Minimal Ada kernel for Jupyter
 ==============================
 
-1. Introduction
+Introduction
 ---------------
 
 This Package contains a Jupyter kernel for the Ada language. The
@@ -9,7 +9,7 @@ This Package contains a Jupyter kernel for the Ada language. The
 as a starting point for this implementation.
 
 
-2. License & Copyright
+License & Copyright
 ----------------------
 
 This Package is available "as is" under MIT License. The copyright of the
@@ -18,7 +18,7 @@ held by Brendan Rius. Unless stated otherwise, the copyright of the Ada kernel
 for Jupyter is held by Gustavo A. Hoffmann.
 
 
-2. Supported Platforms
+Supported Platforms
 ----------------------
 
 This Package has been tested on the following compilers / platforms:
@@ -27,7 +27,7 @@ This Package has been tested on the following compilers / platforms:
 - Windows / Python 3.6
 
 
-3. Features
+Features
 -----------
 
 - Support for Ada language in Jupyter notebooks
@@ -35,7 +35,7 @@ This Package has been tested on the following compilers / platforms:
 - Support for specifying multiple source-code files in the same notebook
 
 
-4. Known Issues and Limitations
+Known Issues and Limitations
 -------------------------------
 
 ### Platforms
@@ -51,7 +51,7 @@ This Package has been tested on the following compilers / platforms:
 - Extensive documentation and tutorials are missing.
 
 
-5. Installation
+Installation
 ---------------
 
 ### Requirements
@@ -145,7 +145,7 @@ is to manually install the required files:
         ```
 
 
-6. Usage
+Usage
 --------
 
 Please refer to the Jupyter documentation for details on how to create and use
