@@ -24,6 +24,7 @@ for Jupyter is held by Gustavo A. Hoffmann.
 This Package has been tested on the following compilers / platforms:
 
 - Linux / Python 3.6
+- Windows / Python 3.6
 
 
 3. Features
@@ -39,7 +40,7 @@ This Package has been tested on the following compilers / platforms:
 
 ### Platforms
 
-- This Package has not been tested on Windows and Mac platforms.
+- This Package has not been tested on the Mac platform.
 
 ### Features
 
@@ -73,6 +74,14 @@ sudo pip install -e `pwd`
 sudo install_ada_kernel
 ```
 
+Use similar command-lines for Windows:
+
+```
+pip install -e C:\Users\JohnSmith\Downloads\jupyter-ada-kernel-0.1.0
+cd C:\Users\JohnSmith\Downloads\jupyter-ada-kernel-0.1.0\jupyter_ada_kernel
+python install_ada_kernel
+```
+
 ### Ada module for CodeMirror
 
 Jupyter makes use of [CodeMirror](https://codemirror.net/) for syntax
@@ -84,16 +93,32 @@ is to manually install the required files:
 - Install Ada mode
 
     - Locate CodeMirror installation for Jupyter
-        - For example, if you use Python 3.6, this is the corresponding location:
+        - For example, if you use Python 3.6, this is the corresponding location on Linux:
 
         ```bash
         /usr/local/lib/python3.6/dist-packages/notebook/static/components/codemirror/
         ```
 
+        - On Windows, the location also depends on the environment. For example:
+
+        ```
+        C:\Users\JohnSmith\myenv\Lib\site-packages\notebook\static\components\codemirror\
+        ```
+
     - Install Ada mode into CodeMirror module:
+
+        - On Linux:
 
         ```bash
             cp -r ./jupyter-ada-kernel/codemirror/mode/ada /usr/local/lib/python3.6/dist-packages/notebook/static/components/codemirror/mode/
+        ```
+
+        - On Windows:
+
+        ```
+            cd C:\Users\JohnSmith\myenv\Lib\site-packages\notebook\static\components\codemirror\mode
+
+            xcopy C:\Users\JohnSmith\Downloads\jupyter-ada-kernel-0.1.0\codemirror\mode\ada .\ada /e /i /h
         ```
 
         - Make sure to use the correct directory!
