@@ -199,7 +199,7 @@ class AdaKernel(Kernel):
             p.write_contents()
             if p.returncode != 0:  # Compilation failed
                 self._write_to_stderr(
-                        "[C kernel] GCC exited with code {}, the executable will not be executed".format(
+                        "[Ada kernel] GNAT exited with code {}, the executable will not be executed".format(
                                 p.returncode))
                 return {'status': 'ok', 'execution_count': self.execution_count, 'payload': [],
                         'user_expressions': {}}
@@ -211,7 +211,7 @@ class AdaKernel(Kernel):
             p.write_contents()
 
             if p.returncode != 0:
-                self._write_to_stderr("[C kernel] Executable exited with code {}".format(p.returncode))
+                self._write_to_stderr("[Ada kernel] Executable exited with code {}".format(p.returncode))
 
         return {'status': 'ok', 'execution_count': self.execution_count, 'payload': [], 'user_expressions': {}}
 
