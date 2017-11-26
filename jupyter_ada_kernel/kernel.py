@@ -83,11 +83,14 @@ class AdaKernel(Kernel):
     def cleanup_files(self):
         """Remove all the temporary files created by the kernel"""
         for file in self.files:
-            os.remove(file)
+            if os.path.exists(file):
+                os.remove(file)
 
     def new_src_file(self, filename):
         """Create a new temp file to be deleted when the kernel shuts down"""
         # We don't want the file to be deleted when closed, but only when the kernel stops
+        if os.path.exists(filename):
+            os.remove(filename)
         file = open(filename, 'w')
         self.files.append(filename)
         return file
@@ -121,7 +124,7 @@ class AdaKernel(Kernel):
     def build_with_gcc(self, source_filename, binary_filename, cflags=None, ldflags=None):
         """Build code using gnat/gcc"""
         cflags = []
-        args = ['gnatmake', source_filename]
+        args = ['gnatmake', '-f', source_filename]
         return self.create_jupyter_subprocess(args)
 
     def _filter_magics(self, code):
@@ -147,6 +150,8 @@ class AdaKernel(Kernel):
                     magics[key] = value.lower()
                 elif key == "run":
                     magics[key] = value.lower()
+                elif key == "run_file":
+                    magics[key] = value.lower()
                 elif key == "output":
                     self.output_format = value.lower()
 
@@ -161,11 +166,33 @@ class AdaKernel(Kernel):
         except:
             print("Cannot retrieve magic string")
 
-        binary_filename = ""
+        binary_filename = None
+        source_filename = None
 
-        if "run" in magics:
+        if "run_file" in magics:
+            source_filename = magics['run_file']
+            binary_filename = os.path.splitext(magics['run_file'])[0]
+
+        if "filename" in magics:
+            source_filename = magics['filename']
+
+        if "run" in magics and not "run_file" in magics:
             binary_filename = os.path.splitext(magics['run'])[0]
-            p = self.build_with_gcc(magics['run'] + ".adb", binary_filename, magics['cflags'], magics['ldflags'])
+            if source_filename is None:
+                source_filename = binary_filename + ".adb"
+
+        if source_filename is not None:
+            with self.new_src_file(source_filename) as source_file:
+                source_file.write(code)
+                source_file.flush()
+
+            p = self.compile_with_gcc(source_filename, binary_filename, magics['cflags'], magics['ldflags'])
+            while p.poll() is None:
+                p.write_contents()
+            p.write_contents()
+
+        if binary_filename is not None:
+            p = self.build_with_gcc(source_filename, binary_filename, magics['cflags'], magics['ldflags'])
 
             while p.poll() is None:
                 p.write_contents()
@@ -185,16 +212,6 @@ class AdaKernel(Kernel):
 
             if p.returncode != 0:
                 self._write_to_stderr("[C kernel] Executable exited with code {}".format(p.returncode))
-
-        else:
-            if "filename" in magics:
-                with self.new_src_file(magics['filename']) as source_file:
-                    source_file.write(code)
-                    source_file.flush()
-                    p = self.compile_with_gcc(magics['filename'], binary_filename, magics['cflags'], magics['ldflags'])
-                    while p.poll() is None:
-                        p.write_contents()
-                    p.write_contents()
 
         return {'status': 'ok', 'execution_count': self.execution_count, 'payload': [], 'user_expressions': {}}
 
