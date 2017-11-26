@@ -64,6 +64,8 @@ Usage
 Please refer to the Jupyter documentation for details on how to create and use
 notebooks.
 
+### Entering and running Ada code
+
 In order to use the Ada kernel, the first step is to select "Ada" from the list
 of kernels supported by the Jupyter installation. As soon as the kernel has
 started, you may enter Ada code by specifying the filename in the comments:
@@ -82,11 +84,25 @@ end Main;
 The filename is required for creating the source-code file for the GNAT
 compiler. Click on 'Run' on the toolbar to compile the code.
 
-In order to build and run the executable based on the procedure _Main_, enter
+In order to build and run the binary based on the procedure _Main_, enter
 the following line and click on 'Run' on the toolbar:
 
 ```ada
 --% run: Main
+```
+
+Alternative, for the procedure _Main_, you may enter Ada code, build and run
+the binary in the same cell:
+
+```ada
+--% run_file: main.adb
+
+with Ada.Text_IO;
+
+procedure Main is
+begin
+    Ada.Text_IO.Put_Line("Hello World");
+end Main;
 ```
 
 ### Example of notebook
