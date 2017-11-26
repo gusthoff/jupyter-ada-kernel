@@ -91,7 +91,7 @@ the following line and click on 'Run' on the toolbar:
 --% run: Main
 ```
 
-Alternative, for the procedure _Main_, you may enter Ada code, build and run
+Alternatively, for the procedure _Main_, you may enter Ada code, build and run
 the binary in the same cell:
 
 ```ada
