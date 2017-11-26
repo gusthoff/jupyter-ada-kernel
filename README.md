@@ -105,8 +105,64 @@ begin
 end Main;
 ```
 
+### Output formats
+
+By default, the standard output of the binary will be displayed as raw (plain)
+text. However, this mode can be explicitly specified:
+
+```ada
+--% run_file: main.adb
+--% output: raw
+
+with Ada.Text_IO;
+
+procedure Main is
+begin
+    Ada.Text_IO.Put_Line("Hello World");
+end Main;
+```
+
+The standard output can also be displayed in HTML format:
+
+```ada
+--% run_file: main.adb
+--% output: text/html
+
+with Ada.Text_IO;
+
+procedure Main is
+begin
+    Ada.Text_IO.Put_Line("<b>Hello World</b>");
+end Main;
+```
+
+The standard output can also be displayed in Markdown format:
+
+```ada
+--% run_file: main.adb
+--% output: text/markdown
+
+with Ada.Text_IO;
+
+procedure Main is
+begin
+    Ada.Text_IO.Put_Line("# Hello World");
+end Main;
+```
+
+Finally, the format to be used can also be specified directly in the Ada
+application. In this case, the output must use the JSON representation
+required by `display_data`, which is used by IPython. Details about this can
+be found in the
+[IPython documentation](https://ipython.org/ipython-doc/3/notebook/nbformat.html#display-data).
+
+
 ### Example of notebook
 
 This Package contains an [example of a notebook](examples/Hello_World.ipynb):
 
 ![Pic of notebook](examples/Hello_World.png)
+
+The [HTML output notebook](examples/Hello_Html.ipynb) contains examples of HTML
+and Markdown output. It also contains an example that makes use of the internal
+JSON representation.
