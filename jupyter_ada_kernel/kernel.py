@@ -74,6 +74,7 @@ class AdaKernel(Kernel):
                      'file_extension': '.ada'}
     banner = "Ada kernel.\n" \
              "Uses gcc and creates source code files and executables in temporary folder.\n"
+    output_format = "raw"
 
     def __init__(self, *args, **kwargs):
         super(AdaKernel, self).__init__(*args, **kwargs)
@@ -92,7 +93,16 @@ class AdaKernel(Kernel):
         return file
 
     def _write_to_stdout(self, contents):
-        self.send_response(self.iopub_socket, 'stream', {'name': 'stdout', 'text': contents})
+        if self.output_format == "raw":
+            self.send_response(self.iopub_socket, 'stream', {'name': 'stdout', 'text': contents})
+        elif self.output_format == "json":
+            import json
+            self.send_response(self.iopub_socket, 'display_data', json.loads(contents));
+        else:
+            self.send_response(self.iopub_socket, 'display_data',
+                { 'data': { self.output_format : contents },
+                'metadata': {}
+                })
 
     def _write_to_stderr(self, contents):
         self.send_response(self.iopub_socket, 'stream', {'name': 'stderr', 'text': contents})
@@ -137,6 +147,8 @@ class AdaKernel(Kernel):
                     magics[key] = value.lower()
                 elif key == "run":
                     magics[key] = value.lower()
+                elif key == "output":
+                    self.output_format = value.lower()
 
         return magics
 
