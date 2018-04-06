@@ -203,7 +203,8 @@ class AdaKernel(Kernel):
         except:
             print("Cannot retrieve magic string")
 
-        build = False
+        build_code = False
+        compile_code = False
         output_cell = True
         binary_filename = None
         source_filename = None
@@ -219,8 +220,8 @@ class AdaKernel(Kernel):
 
         if "prj_file" in magics:
             project_filename = magics['prj_file']
-            if magics['mode'] == "build":
-                build = True
+            if magics['mode'] != "prove":
+                build_code = True
             if output_cell:
                 output_filename  = project_filename
 
@@ -230,14 +231,17 @@ class AdaKernel(Kernel):
                 output_filename = source_filename
             if magics['format'] == 'ada':
                 binary_filename = os.path.splitext(magics['run_file'])[0]
-                if magics['mode'] == "build":
-                    build = True
+                if magics['mode'] != "prove":
+                    build_code = True
             else:
                 self._write_to_stderr("[Ada kernel] No support for 'run_file' when using C source-code files")
         elif "src_file" in magics:
             source_filename = magics['src_file']
             if output_cell:
                 output_filename = source_filename
+            if magics['format'] == 'ada':
+                if magics['mode'] != "prove":
+                    compile_code = True
         elif "file" in magics:
             if output_cell:
                 output_filename = magics['file']
@@ -251,7 +255,7 @@ class AdaKernel(Kernel):
                 source_file.write(code)
                 source_file.flush()
 
-        if source_filename is not None:
+        if source_filename is not None and compile_code:
             p = None
             if magics['format'] == 'ada':
                 p = self.compile_with_gnat(source_filename, magics['cflags'])
@@ -281,7 +285,7 @@ class AdaKernel(Kernel):
                     return {'status': 'ok', 'execution_count': self.execution_count, 'payload': [],
                             'user_expressions': {}}
 
-        if build:
+        if build_code:
             p = None
             if project_filename is not None:
                 p = self.build_project_with_gnat(project_filename, source_filename, magics['make_flags'])
