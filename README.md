@@ -71,7 +71,7 @@ of kernels supported by the Jupyter installation. As soon as the kernel has
 started, you may enter Ada code by specifying the filename in the comments:
 
 ```ada
---% filename: main.adb
+--% src_file: main.adb
 
 with Ada.Text_IO;
 
