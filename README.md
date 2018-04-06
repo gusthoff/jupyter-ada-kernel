@@ -293,8 +293,6 @@ test function from the C code:
 
 with Ada.Text_IO;
 
-with Ada.Text_IO;
-
 procedure Main is
    procedure test with
      Import,
