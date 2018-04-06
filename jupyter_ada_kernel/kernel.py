@@ -242,13 +242,14 @@ class AdaKernel(Kernel):
             if magics['format'] == 'ada':
                 if magics['mode'] != "prove":
                     compile_code = True
+                if magics['mode'] == "build":
+                    build_code = True
         elif "file" in magics:
             if output_cell:
                 output_filename = magics['file']
 
         if "run" in magics:
-            if binary_filename is None:
-                binary_filename = os.path.splitext(magics['run'])[0]
+            binary_filename = os.path.splitext(magics['run'])[0]
 
         if output_filename is not None:
             with self.new_src_file(output_filename) as source_file:
