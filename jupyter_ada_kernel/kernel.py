@@ -139,6 +139,15 @@ class AdaKernel(Kernel):
             args.extend(make_flags)
         return self.create_jupyter_subprocess(args)
 
+    def prove_project_with_gnat(self, project_filename, source_filename, prove_flags=None):
+        """Build code using gnat/gcc"""
+        args = ['gnatprove', '-P', project_filename]
+        if source_filename is not None:
+            args.append(source_filename)
+        if prove_flags is not None:
+            args.extend(prove_flags)
+        return self.create_jupyter_subprocess(args)
+
     def build_file_with_gnat(self, source_filename, make_flags=None):
         """Build code using gnat/gcc"""
         args = ['gnatmake', '-f', source_filename]
@@ -150,6 +159,7 @@ class AdaKernel(Kernel):
 
         magics = {'cflags': [],
                   'make_flags': [],
+                  'prove_flags': [],
                   'args': []}
 
         for line in code.splitlines():
@@ -164,7 +174,7 @@ class AdaKernel(Kernel):
                 key = key.strip().lower()
                 value = value.lstrip()
 
-                if key in ['make_flags', 'cflags']:
+                if key in ['make_flags', 'cflags', 'prove_flags']:
                     for flag in value.split(" "):
                         magics[key] += [flag]
                 elif key == "args":
@@ -194,23 +204,23 @@ class AdaKernel(Kernel):
             print("Cannot retrieve magic string")
 
         build = False
+        output_cell = True
         binary_filename = None
         source_filename = None
         output_filename = None
         project_filename = None
 
         if "mode" in magics:
-            if magics['mode'] == "build":
+            if magics['mode'] in ["build", "prove"]:
                 output_cell = False
-                build = True
         else:
             # Set default mode
             magics['mode'] = "output_cell"
-            output_cell = True
 
         if "prj_file" in magics:
             project_filename = magics['prj_file']
-            build = True
+            if magics['mode'] == "build":
+                build = True
             if output_cell:
                 output_filename  = project_filename
 
@@ -220,7 +230,8 @@ class AdaKernel(Kernel):
                 output_filename = source_filename
             if magics['format'] == 'ada':
                 binary_filename = os.path.splitext(magics['run_file'])[0]
-                build = True
+                if magics['mode'] == "build":
+                    build = True
             else:
                 self._write_to_stderr("[Ada kernel] No support for 'run_file' when using C source-code files")
         elif "src_file" in magics:
@@ -251,6 +262,24 @@ class AdaKernel(Kernel):
                 while p.poll() is None:
                     p.write_contents()
                 p.write_contents()
+
+        if magics['mode'] == 'prove':
+            p = None
+            if project_filename is not None:
+                p = self.prove_project_with_gnat(project_filename, source_filename, magics['prove_flags'])
+            else:
+                self._write_to_stderr("[Ada kernel] Undefined 'prj_file'")
+
+            if p is not None:
+                while p.poll() is None:
+                    p.write_contents()
+                p.write_contents()
+                if p.returncode != 0:  # Prove failed
+                    self._write_to_stderr(
+                            "[Ada kernel] GNATprove exited with code {}, the executable will not be executed".format(
+                                    p.returncode))
+                    return {'status': 'ok', 'execution_count': self.execution_count, 'payload': [],
+                            'user_expressions': {}}
 
         if build:
             p = None
