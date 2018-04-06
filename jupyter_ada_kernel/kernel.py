@@ -115,22 +115,24 @@ class AdaKernel(Kernel):
                                   lambda contents: self._write_to_stdout(contents.decode()),
                                   lambda contents: self._write_to_stderr(contents.decode()))
 
-    def compile_with_gcc(self, source_filename, binary_filename, cflags=None, ldflags=None):
+    def compile_with_gcc(self, source_filename, binary_filename, cflags=None, make_flags=None):
         """Compile code using gnat/gcc"""
-        cflags = []
         args = ['gnat', "compile", "-gnatc", source_filename]
+        if cflags is not None:
+            args.extend(cflags)
         return self.create_jupyter_subprocess(args)
 
-    def build_with_gcc(self, source_filename, binary_filename, cflags=None, ldflags=None):
+    def build_with_gcc(self, source_filename, binary_filename, cflags=None, make_flags=None):
         """Build code using gnat/gcc"""
-        cflags = []
         args = ['gnatmake', '-f', source_filename]
+        if make_flags is not None:
+            args.extend(make_flags)
         return self.create_jupyter_subprocess(args)
 
     def _filter_magics(self, code):
 
         magics = {'cflags': [],
-                  'ldflags': [],
+                  'make_flags': [],
                   'args': []}
 
         for line in code.splitlines():
@@ -139,8 +141,8 @@ class AdaKernel(Kernel):
                 key = key.strip().lower()
                 value = value.lstrip()
 
-                if key in ['ldflags', 'cflags']:
-                    for flag in value.split():
+                if key in ['make_flags', 'cflags']:
+                    for flag in value.split(" "):
                         magics[key] += [flag]
                 elif key == "args":
                     # Split arguments respecting quotes
@@ -186,13 +188,13 @@ class AdaKernel(Kernel):
                 source_file.write(code)
                 source_file.flush()
 
-            p = self.compile_with_gcc(source_filename, binary_filename, magics['cflags'], magics['ldflags'])
+            p = self.compile_with_gcc(source_filename, binary_filename, magics['cflags'], magics['make_flags'])
             while p.poll() is None:
                 p.write_contents()
             p.write_contents()
 
         if binary_filename is not None:
-            p = self.build_with_gcc(source_filename, binary_filename, magics['cflags'], magics['ldflags'])
+            p = self.build_with_gcc(source_filename, binary_filename, magics['cflags'], magics['make_flags'])
 
             while p.poll() is None:
                 p.write_contents()
