@@ -84,15 +84,8 @@ end Main;
 The filename is required for creating the source-code file for the GNAT
 compiler. Click on 'Run' on the toolbar to compile the code.
 
-In order to build and run the binary based on the procedure _Main_, enter
-the following line and click on 'Run' on the toolbar:
-
-```ada
---% run: Main
-```
-
-Alternatively, for the procedure _Main_, you may enter Ada code, build and run
-the binary in the same cell:
+In order to build and run the binary based on the procedure _Main_, you
+can replace `src_file` by `run_file`:
 
 ```ada
 --% run_file: main.adb
@@ -103,6 +96,28 @@ procedure Main is
 begin
     Ada.Text_IO.Put_Line("Hello World");
 end Main;
+```
+
+Alternatively, you may build a file that has been created in another cell
+by using the *build mode*:
+
+```ada
+--% mode: build
+--% src_file: main.adb
+```
+
+In the next cell, you can run the file by using `run`:
+
+```ada
+--% run: main
+```
+
+Again, if you want to build and run the file in the same cell, you may
+simply replace `src_file` by `run_file`:
+
+```ada
+--% mode: build
+--% run_file: main.adb
 ```
 
 ### Specifiying build options
