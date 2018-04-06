@@ -105,6 +105,77 @@ begin
 end Main;
 ```
 
+### Specifiying build options
+
+It is possible to pass compilation options to the compiler using `cflags`:
+
+```ada
+--% src_file: main.adb
+--% cflags: -g
+
+with Ada.Text_IO;
+
+procedure Main is
+begin
+    Ada.Text_IO.Put_Line("Hello World");
+end Main;
+```
+
+Also, it is possible to specify build options using `make_flags`:
+
+```ada
+--% src_file: main.adb
+--% make_flags: -a
+
+with Ada.Text_IO;
+
+procedure Main is
+begin
+    Ada.Text_IO.Put_Line("Hello World");
+end Main;
+```
+
+### Using GPRbuild project files
+
+In addition to the simple compilation / build described in the previous
+section, you may also use project files:
+
+```ada
+--% prj_file: default.gpr
+
+project Default is
+    for Source_Dirs use (".");
+    for Object_Dir use ".";
+    for Main use ("main.adb");
+end Default;
+```
+
+Running the cell will automatically build the project. It is also possible
+to build the project in a separate cell using the *build mode*:
+
+```ada
+--% mode: build
+--% prj_file: default.gpr
+```
+
+Also, in case multiple main files are used, it is possible to specify
+which file contains the main application by using `src_file`:
+
+```ada
+--% mode: build
+--% prj_file: default.gpr
+--% src_file: main.adb
+```
+
+If we replace `src_file` by `run_file`, the application will run
+automatically after the build process:
+
+```ada
+--% mode: build
+--% prj_file: default.gpr
+--% run_file: main.adb
+```
+
 ### Output formats
 
 By default, the standard output of the binary will be displayed as raw (plain)
