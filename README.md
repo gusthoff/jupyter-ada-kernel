@@ -176,6 +176,32 @@ automatically after the build process:
 --% run_file: main.adb
 ```
 
+### Proving SPARK code
+
+It is possible to prove SPARK code by calling GNATprove (when available).
+This is achieved by using the *prove mode*:
+
+```ada
+--% mode: prove
+--% prj_file: default.gpr
+```
+
+It is possible to prove just a specific file using `src_file`:
+
+```ada
+--% mode: prove
+--% prj_file: default.gpr
+--% src_file: main.adb
+```
+
+In addition, GNATprove options may be specified by using `prove_flags`:
+
+```ada
+--% mode: prove
+--% prj_file: default.gpr
+--% prove_flags: --report=all --output-header --verbose
+```
+
 ### Output formats
 
 By default, the standard output of the binary will be displayed as raw (plain)
