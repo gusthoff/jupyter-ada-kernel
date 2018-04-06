@@ -148,7 +148,7 @@ class AdaKernel(Kernel):
                     # Split arguments respecting quotes
                     for argument in re.findall(r'(?:[^\s,"]|"(?:\\.|[^"])*")+', value):
                         magics['args'] += [argument.strip('"')]
-                elif key == "filename":
+                elif key in ["file", "src_file"]:
                     magics[key] = value.lower()
                 elif key == "run":
                     magics[key] = value.lower()
@@ -170,24 +170,30 @@ class AdaKernel(Kernel):
 
         binary_filename = None
         source_filename = None
+        output_filename = None
 
         if "run_file" in magics:
             source_filename = magics['run_file']
             binary_filename = os.path.splitext(magics['run_file'])[0]
-
-        if "filename" in magics:
-            source_filename = magics['filename']
-
-        if "run" in magics and not "run_file" in magics:
+        elif "src_file" in magics:
+            source_filename = magics['src_file']
+        elif "file" in magics:
+            output_filename = magics['file']
+        elif "run" in magics:
             binary_filename = os.path.splitext(magics['run'])[0]
             if source_filename is None:
                 source_filename = binary_filename + ".adb"
 
-        if source_filename is not None:
-            with self.new_src_file(source_filename) as source_file:
+        if (output_filename is None and
+            source_filename is not None):
+            output_filename = source_filename
+
+        if output_filename is not None:
+            with self.new_src_file(output_filename) as source_file:
                 source_file.write(code)
                 source_file.flush()
 
+        if source_filename is not None:
             p = self.compile_with_gnat(source_filename, magics['cflags'])
             while p.poll() is None:
                 p.write_contents()
