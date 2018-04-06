@@ -122,7 +122,17 @@ class AdaKernel(Kernel):
             args.extend(cflags)
         return self.create_jupyter_subprocess(args)
 
-    def build_with_gnat(self, source_filename, make_flags=None):
+    def build_project_with_gnat(self, project_filename, source_filename, make_flags=None):
+        """Build code using gnat/gcc"""
+        args = ['gprbuild', '-d', '-P', project_filename]
+        if source_filename is not None:
+            args.append('-f')
+            args.append(source_filename)
+        if make_flags is not None:
+            args.extend(make_flags)
+        return self.create_jupyter_subprocess(args)
+
+    def build_file_with_gnat(self, source_filename, make_flags=None):
         """Build code using gnat/gcc"""
         args = ['gnatmake', '-f', source_filename]
         if make_flags is not None:
@@ -148,11 +158,13 @@ class AdaKernel(Kernel):
                     # Split arguments respecting quotes
                     for argument in re.findall(r'(?:[^\s,"]|"(?:\\.|[^"])*")+', value):
                         magics['args'] += [argument.strip('"')]
-                elif key in ["file", "src_file"]:
+                elif key in ["file", "src_file", "prj_file"]:
                     magics[key] = value.lower()
                 elif key == "run":
                     magics[key] = value.lower()
                 elif key == "run_file":
+                    magics[key] = value.lower()
+                elif key == "mode":
                     magics[key] = value.lower()
                 elif key == "output":
                     self.output_format = value.lower()
@@ -168,25 +180,44 @@ class AdaKernel(Kernel):
         except:
             print("Cannot retrieve magic string")
 
+        build = False
         binary_filename = None
         source_filename = None
         output_filename = None
+        project_filename = None
+
+        if "mode" in magics:
+            if magics['mode'] == "build":
+                output_cell = False
+                build = True
+        else:
+            # Set default mode
+            magics['mode'] = "output_cell"
+            output_cell = True
+
+        if "prj_file" in magics:
+            project_filename = magics['prj_file']
+            build = True
+            if output_cell:
+                output_filename  = project_filename
 
         if "run_file" in magics:
             source_filename = magics['run_file']
+            if output_cell:
+                output_filename = source_filename
             binary_filename = os.path.splitext(magics['run_file'])[0]
+            build = True
         elif "src_file" in magics:
             source_filename = magics['src_file']
+            if output_cell:
+                output_filename = source_filename
         elif "file" in magics:
-            output_filename = magics['file']
-        elif "run" in magics:
-            binary_filename = os.path.splitext(magics['run'])[0]
-            if source_filename is None:
-                source_filename = binary_filename + ".adb"
+            if output_cell:
+                output_filename = magics['file']
 
-        if (output_filename is None and
-            source_filename is not None):
-            output_filename = source_filename
+        if "run" in magics:
+            if binary_filename is None:
+                binary_filename = os.path.splitext(magics['run'])[0]
 
         if output_filename is not None:
             with self.new_src_file(output_filename) as source_file:
@@ -199,20 +230,25 @@ class AdaKernel(Kernel):
                 p.write_contents()
             p.write_contents()
 
-        if binary_filename is not None:
-            p = self.build_with_gnat(source_filename, magics['make_flags'])
+        if build:
+            p = None
+            if project_filename is not None:
+                p = self.build_project_with_gnat(project_filename, source_filename, magics['make_flags'])
+            elif source_filename is not None:
+                p = self.build_file_with_gnat(source_filename, magics['make_flags'])
 
-            while p.poll() is None:
+            if p is not None:
+                while p.poll() is None:
+                    p.write_contents()
                 p.write_contents()
-            p.write_contents()
-            if p.returncode != 0:  # Compilation failed
-                self._write_to_stderr(
-                        "[Ada kernel] GNAT exited with code {}, the executable will not be executed".format(
-                                p.returncode))
-                return {'status': 'ok', 'execution_count': self.execution_count, 'payload': [],
-                        'user_expressions': {}}
+                if p.returncode != 0:  # Compilation failed
+                    self._write_to_stderr(
+                            "[Ada kernel] GNAT exited with code {}, the executable will not be executed".format(
+                                    p.returncode))
+                    return {'status': 'ok', 'execution_count': self.execution_count, 'payload': [],
+                            'user_expressions': {}}
 
-
+        if binary_filename is not None:
             p = self.create_jupyter_subprocess(["./" + binary_filename] + magics['args'])
             while p.poll() is None:
                 p.write_contents()
