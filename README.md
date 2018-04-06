@@ -268,6 +268,55 @@ required by `display_data`, which is used by IPython. Details about this can
 be found in the
 [IPython documentation](https://ipython.org/ipython-doc/3/notebook/nbformat.html#display-data).
 
+### Interfacing with C/C++
+
+In addition to Ada code, it is possible to interface with C code. For
+example, we may create a cell containing C code by using `src_file`:
+
+```c
+//% src_file: test.c
+
+#include <stdio.h>
+
+void test()
+{
+    int a = 0;
+    printf("Hi from C\n");
+}
+```
+
+In the next cell, we may specify an Ada procedure that makes use of the
+test function from the C code:
+
+```ada
+--% src_file: main.adb
+
+with Ada.Text_IO;
+
+with Ada.Text_IO;
+
+procedure Main is
+   procedure test with
+     Import,
+     Convention => C;
+begin
+   test;
+end Main;
+```
+
+In order to build this code, we need to make use of a project file that
+explicitly mentions C in the list of supported languages:
+
+```ada
+--% prj_file: default.gpr
+
+project Default is
+    for Source_Dirs use (".");
+    for Object_Dir use ".";
+    for Languages use ("ada", "c");
+    for Main use ("main.adb");
+end Default;
+```
 
 ### Example of notebook
 
