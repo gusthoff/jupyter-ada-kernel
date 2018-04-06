@@ -66,7 +66,7 @@ class RealTimeSubprocess(subprocess.Popen):
 
 class AdaKernel(Kernel):
     implementation = 'jupyter_ada_kernel'
-    implementation_version = '0.1'
+    implementation_version = '0.2'
     language = 'ada'
     language_version = '2012'
     language_info = {'name': 'ada',
