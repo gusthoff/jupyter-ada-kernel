@@ -115,14 +115,14 @@ class AdaKernel(Kernel):
                                   lambda contents: self._write_to_stdout(contents.decode()),
                                   lambda contents: self._write_to_stderr(contents.decode()))
 
-    def compile_with_gcc(self, source_filename, binary_filename, cflags=None, make_flags=None):
+    def compile_with_gcc(self, source_filename, cflags=None):
         """Compile code using gnat/gcc"""
         args = ['gnat', "compile", "-gnatc", source_filename]
         if cflags is not None:
             args.extend(cflags)
         return self.create_jupyter_subprocess(args)
 
-    def build_with_gcc(self, source_filename, binary_filename, cflags=None, make_flags=None):
+    def build_with_gcc(self, source_filename, make_flags=None):
         """Build code using gnat/gcc"""
         args = ['gnatmake', '-f', source_filename]
         if make_flags is not None:
@@ -188,13 +188,13 @@ class AdaKernel(Kernel):
                 source_file.write(code)
                 source_file.flush()
 
-            p = self.compile_with_gcc(source_filename, binary_filename, magics['cflags'], magics['make_flags'])
+            p = self.compile_with_gcc(source_filename, magics['cflags'])
             while p.poll() is None:
                 p.write_contents()
             p.write_contents()
 
         if binary_filename is not None:
-            p = self.build_with_gcc(source_filename, binary_filename, magics['cflags'], magics['make_flags'])
+            p = self.build_with_gcc(source_filename, magics['make_flags'])
 
             while p.poll() is None:
                 p.write_contents()
