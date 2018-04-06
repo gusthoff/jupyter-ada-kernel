@@ -115,6 +115,13 @@ class AdaKernel(Kernel):
                                   lambda contents: self._write_to_stdout(contents.decode()),
                                   lambda contents: self._write_to_stderr(contents.decode()))
 
+    def compile_with_gcc(self, source_filename, cflags=None):
+        """Compile code using gcc"""
+        args = ['gcc', '-c', source_filename]
+        if cflags is not None:
+            args.extend(cflags)
+        return self.create_jupyter_subprocess(args)
+
     def compile_with_gnat(self, source_filename, cflags=None):
         """Compile code using gnat/gcc"""
         args = ['gnat', "compile", "-gnatc", source_filename]
@@ -146,7 +153,13 @@ class AdaKernel(Kernel):
                   'args': []}
 
         for line in code.splitlines():
-            if line.startswith('--%'):
+
+            if line.startswith('--%') or line.startswith('//%'):
+                if line.startswith('--%'):
+                    magics['format'] = 'ada'
+                if line.startswith('//%'):
+                    magics['format'] = 'c'
+
                 key, value = line[3:].split(":", 2)
                 key = key.strip().lower()
                 value = value.lstrip()
@@ -205,8 +218,11 @@ class AdaKernel(Kernel):
             source_filename = magics['run_file']
             if output_cell:
                 output_filename = source_filename
-            binary_filename = os.path.splitext(magics['run_file'])[0]
-            build = True
+            if magics['format'] == 'ada':
+                binary_filename = os.path.splitext(magics['run_file'])[0]
+                build = True
+            else:
+                self._write_to_stderr("[Ada kernel] No support for 'run_file' when using C source-code files")
         elif "src_file" in magics:
             source_filename = magics['src_file']
             if output_cell:
@@ -225,10 +241,16 @@ class AdaKernel(Kernel):
                 source_file.flush()
 
         if source_filename is not None:
-            p = self.compile_with_gnat(source_filename, magics['cflags'])
-            while p.poll() is None:
+            p = None
+            if magics['format'] == 'ada':
+                p = self.compile_with_gnat(source_filename, magics['cflags'])
+            elif magics['format'] == 'c':
+                p = self.compile_with_gcc(source_filename, magics['cflags'])
+
+            if p is not None:
+                while p.poll() is None:
+                    p.write_contents()
                 p.write_contents()
-            p.write_contents()
 
         if build:
             p = None
