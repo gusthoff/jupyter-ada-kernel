@@ -285,7 +285,7 @@ void test()
 }
 ```
 
-In the next cell, we may specify an Ada procedure that makes use of the
+In the next cell, we may write an Ada procedure that makes use of the
 test function from the C code:
 
 ```ada
